@@ -3,8 +3,6 @@ const charImageInput = document.getElementById("char-image");
 const charPreview = document.getElementById("char-preview");
 const result = document.getElementById("result");
 
-const API_KEY = "3a35ea896de84e658b3131439252811";
-
 charImageInput.addEventListener("change", (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -25,6 +23,25 @@ document.getElementById("check-weather").addEventListener("click", async () => {
   const msgWarm = document.getElementById("msg-warm").value;
   const msgHot  = document.getElementById("msg-hot").value;
   const msgRain = document.getElementById("msg-rain").value;
+
+  async function getWeather(city) {
+  // 1. 도시명 → 위도/경도 변환하기
+  const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}`)
+    .then(res => res.json());
+
+  if (!geo.results || geo.results.length === 0) {
+    throw new Error("도시를 찾을 수 없습니다.");
+  }
+
+  const { latitude, longitude } = geo.results[0];
+
+  // 2. 실제 날씨 가져오기
+  const weather = await fetch(
+    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
+  ).then(res => res.json());
+
+  return weather.current_weather;
+}
 
   const charName = charNameInput.value || "캐릭터";
 
@@ -65,3 +82,4 @@ document.getElementById("check-weather").addEventListener("click", async () => {
     alert("날씨 정보를 가져오지 못했어요.");
   }
 });
+
